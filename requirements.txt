@@ -1,0 +1,31 @@
+# --- Kedro / ETL ---
+kedro~=0.19.14
+kedro-datasets[pandas-csvdataset,pickle-pickledataset]>=4.0
+
+# --- Dane i analiza ---
+pandas>=2.1
+numpy>=1.26
+matplotlib>=3.8
+seaborn>=0.13
+requests>=2.31
+
+# --- Modelowanie ---
+scikit-learn>=1.4
+joblib>=1.3
+# AutoML (etap 4)
+# pycaret>=3.3
+
+# --- API / UI (etap 7) ---
+fastapi>=0.110
+uvicorn>=0.29
+streamlit>=1.33
+
+# --- Notebooki ---
+ipython>=8.10
+jupyterlab>=3.0
+notebook
+
+# --- Testy / jakosc kodu ---
+pytest>=7.2
+pytest-cov>=4.0
+ruff>=0.4
