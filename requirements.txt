@@ -1,5 +1,5 @@
 # --- Kedro / ETL ---
-kedro~=0.19.14
+kedro~=1.7.0
 kedro-datasets[pandas-csvdataset,pickle-pickledataset]>=4.0
 
 # --- Dane i analiza ---

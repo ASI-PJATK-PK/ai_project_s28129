@@ -7,7 +7,7 @@ requires-python = ">=3.9"
 name = "ai_project_s28129"
 readme = "README.md"
 dynamic = [ "version",]
-dependencies = [ "ipython>=8.10", "jupyterlab>=3.0", "notebook", "kedro~=0.19.14",]
+dependencies = [ "ipython>=8.10", "jupyterlab>=3.0", "notebook", "kedro~=1.7.0",]
 
 [project.scripts]
 ai-project-s28129 = "ai_project_s28129.__main__:main"
@@ -18,7 +18,7 @@ dev = [ "pytest-cov~=3.0", "pytest-mock>=1.7.1, <2.0", "pytest~=7.2", "ruff~=0.1
 [tool.kedro]
 package_name = "ai_project_s28129"
 project_name = "ai_project_s28129"
-kedro_init_version = "0.19.14"
+kedro_init_version = "1.7.0"
 tools = "['Linting', 'Testing', 'Custom Logging', 'Data Structure']"
 example_pipeline = "False"
 source_dir = "src"
