@@ -1,0 +1,12 @@
+random_state: 42
+
+data_split:
+  train_days: [Monday]
+  validation_days: [Tuesday, Wednesday]
+  test_days: [Thursday, Friday]
+
+label_column: Label
+benign_label: BENIGN
+
+# docelowy maksymalny odsetek falszywych alarmow przy doborze progu
+target_fpr: 0.01
