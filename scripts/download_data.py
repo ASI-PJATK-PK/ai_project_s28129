@@ -23,12 +23,9 @@ DEFAULT_URL = (
     "MachineLearningCSV.zip"
 )
 
+# Zakres projektu: poniedzialek (tylko BENIGN) + piatek (ataki) - pozostale dni pomijamy
 EXPECTED_FILES = [
     "Monday-WorkingHours.pcap_ISCX.csv",
-    "Tuesday-WorkingHours.pcap_ISCX.csv",
-    "Wednesday-workingHours.pcap_ISCX.csv",
-    "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv",
-    "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv",
     "Friday-WorkingHours-Morning.pcap_ISCX.csv",
     "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
     "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
@@ -55,12 +52,12 @@ def download(url: str, target: Path) -> Path:
 
 
 def extract(zip_path: Path, out_dir: Path) -> None:
-    """Rozpakowuje tylko pliki CSV, ignorujac strukture katalogow w archiwum."""
+    """Rozpakowuje tylko potrzebne pliki CSV, ignorujac strukture katalogow w archiwum."""
     out_dir.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zip_path) as zf:
         for member in zf.infolist():
             name = Path(member.filename).name
-            if not name.endswith(".csv"):
+            if name not in EXPECTED_FILES:
                 continue
             print(f"  rozpakowuje {name}")
             with zf.open(member) as src, open(out_dir / name, "wb") as dst:

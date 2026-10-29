@@ -1,12 +1,16 @@
 random_state: 42
 
-data_split:
-  train_days: [Monday]
-  validation_days: [Tuesday, Wednesday]
-  test_days: [Thursday, Friday]
-
 label_column: Label
 benign_label: BENIGN
 
-# docelowy maksymalny odsetek falszywych alarmow przy doborze progu
+# train = poniedzialek (tylko BENIGN)
+# piatek dzielimy losowo (stratyfikacja po etykiecie) na walidacje i test
+val_test_split:
+  test_size: 0.5
+
+# docelowy maksymalny odsetek falszywych alarmow przy doborze progu (na walidacji)
 target_fpr: 0.01
+
+isolation_forest:
+  n_estimators: 200
+  max_samples: 256

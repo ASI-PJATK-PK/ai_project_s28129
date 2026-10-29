@@ -4,21 +4,27 @@
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
 # --- 01_raw: CIC-IDS2017 MachineLearningCSV (scripts/download_data.py) ---
-# Poniedzialek = wylacznie ruch BENIGN (zbior treningowy detektora anomalii)
-raw_monday:
+# Zakres minimum: 2 dni ruchu - poniedzialek (tylko BENIGN) i piatek (BENIGN + ataki)
+_csv: &csv
   type: pandas.CSVDataset
-  filepath: data/01_raw/Monday-WorkingHours.pcap_ISCX.csv
   load_args:
     skipinitialspace: true
     low_memory: false
 
-# Wtorek-piatek = ruch mieszany z atakami (walidacja / test)
-raw_attack_days:
-  type: partitions.PartitionedDataset
-  path: data/01_raw
-  dataset:
-    type: pandas.CSVDataset
-    load_args:
-      skipinitialspace: true
-      low_memory: false
-  filename_suffix: .pcap_ISCX.csv
+# trening detektora anomalii - wylacznie ruch normalny
+raw_monday:
+  <<: *csv
+  filepath: data/01_raw/Monday-WorkingHours.pcap_ISCX.csv
+
+# walidacja / test - ruch mieszany z atakami
+raw_friday_morning:        # Botnet (Ares)
+  <<: *csv
+  filepath: data/01_raw/Friday-WorkingHours-Morning.pcap_ISCX.csv
+
+raw_friday_portscan:       # PortScan
+  <<: *csv
+  filepath: data/01_raw/Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv
+
+raw_friday_ddos:           # DDoS (LOIC)
+  <<: *csv
+  filepath: data/01_raw/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
