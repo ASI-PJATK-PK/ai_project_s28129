@@ -50,12 +50,12 @@ def arrow(a, b, label="", side="h"):
                 ha="center", fontsize=8, style="italic", color="#475569")
 
 
-ax.text(8, 8.75, "NetGuard – mini-IDS (detekcja anomalii) – architektura systemu",
+ax.text(8, 8.75, "IDS oparty na detekcji anomalii – architektura systemu",
         ha="center", fontsize=15, weight="bold")
 
 # --- warstwa danych / ETL / ML (gora) ---
 src = box(0.3, 5.2, 2.6, 2.6, "Źródła danych",
-          "CIC-IDS2017\n8 plików CSV\n(~2.8 mln przepływów)\n\ndata/01_raw", COLORS["data"])
+          "CIC-IDS2017\n(CSV, 2 dni)\n\npon.: ruch normalny\npt.: Botnet, PortScan,\nDDoS\n\ndata/01_raw", COLORS["data"])
 etl = box(3.5, 5.2, 3.4, 2.6, "ETL – Kedro",
           "DataCatalog\n\neda  →  preprocessing\n(czyszczenie, skalowanie,\npodział train/val/test)", COLORS["etl"])
 ml = box(7.5, 5.2, 3.6, 2.6, "ML – Kedro",

@@ -1,4 +1,4 @@
-# Architektura – NetGuard (mini-IDS)
+# Architektura – IDS (detekcja anomalii)
 
 ![Diagram architektury](architecture_diagram.png)
 
@@ -6,11 +6,11 @@ Diagram generuje `python scripts/draw_architecture.py`.
 
 ```mermaid
 flowchart LR
-    A[CIC-IDS2017 CSV] --> B[Kedro: eda]
+    A[CIC-IDS2017 CSV<br/>poniedziałek + piątek] --> B[Kedro: eda]
     A --> C[Kedro: preprocessing]
-    C --> D[Kedro: training<br/>Isolation Forest / PyCaret]
+    C --> D[Kedro: training<br/>baseline / Isolation Forest / PyCaret]
     D --> E[Kedro: evaluation]
-    D --> F[(model.pkl)]
+    D --> F[(model.pkl + scaler.pkl)]
     F --> G[FastAPI /predict]
     G <--> H[Streamlit UI]
     I[Airflow DAG] -.->|kedro run| C & D & E
@@ -18,8 +18,8 @@ flowchart LR
 
 | Moduł | Opis |
 |---|---|
-| **ETL (Kedro)** | wczytanie CSV z `data/01_raw`, EDA, czyszczenie (inf/NaN, duplikaty), skalowanie, podział train/val/test po dniach |
-| **ML** | trening detektora na ruchu normalnym, dobór progu, metryki, zapis modelu do `data/06_models` |
+| **ETL (Kedro)** | wczytanie 4 plików CSV z `data/01_raw`, EDA, czyszczenie (inf/NaN, duplikaty, kolumny stałe), skalowanie, podział: train = poniedziałek, val/test = piątek |
+| **ML** | trening detektora na ruchu normalnym, dobór progu (FPR ≤ 1%), metryki, zapis modelu do `data/06_models` |
 | **API (FastAPI)** | `POST /predict` przyjmuje przepływy i zwraca `anomaly_score` oraz `is_attack`; `GET /health` |
 | **UI (Streamlit)** | upload pliku CSV, tabela podejrzanych przepływów, histogram wyników |
 | **Airflow** | DAG: preprocessing → training → evaluation |
