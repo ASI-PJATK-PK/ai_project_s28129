@@ -45,8 +45,7 @@ python scripts/download_data.py --check  # sprawdza, czy pliki są na miejscu
 | AutoML | PyCaret `pycaret.anomaly` (wymaganie etapu 4) |
 
 - **Próg alarmu** dobierany na walidacji tak, aby odsetek fałszywych alarmów (FPR) nie przekraczał **1%**
-- **Metryki:** ROC-AUC, PR-AUC, precision, recall, F1, FPR oraz liczba wykrytych ataków z 25
-- EDA pokazało, że model na pojedynczych sekundach jest słaby, dlatego w etapie 3 dochodzą cechy czasowe i różnice polecenie − położenie zaworu
+- **Metryki:** ROC-AUC, precision, recall, F1, FPR
 
 ## 4. Architektura
 
@@ -67,9 +66,9 @@ Diagram: [`docs/architecture_diagram.png`](docs/architecture_diagram.png), opis:
 |---|---|---|---|
 | **1. Planowanie** ✅ | temat, architektura, szkielet Kedro, backlog | `README.md`, `docs/`, `conf/base/catalog.yml` | repo + diagram + GitHub Project |
 | **2. EDA** ✅ | analiza jakości danych, wykresy, decyzje o danych | `notebooks/EDA_s28129.ipynb`, `pipelines/eda/`, `docs/eda_report.md` | `kedro run --pipeline=eda` zapisuje tabele i wykresy |
-| **3. Preprocessing** | usunięcie kolumn, podział po plikach, różnice `D − Z`, cechy z okien czasowych, `StandardScaler` dopasowany tylko na train | `pipelines/preprocessing/`, `tests/test_preprocessing.py` | dane w `data/05_model_input`, testy `pytest` przechodzą |
+| **3. Preprocessing** | usunięcie kolumn, podział po plikach, `StandardScaler` dopasowany tylko na train | `pipelines/preprocessing/`, `tests/test_preprocessing.py` | dane w `data/05_model_input`, testy `pytest` przechodzą |
 | **4. Model + AutoML** | baseline z-score, Isolation Forest, PyCaret anomaly; dobór progu na walidacji (FPR ≤ 1%) | `pipelines/training/`, `pipelines/evaluation/` | `model.pkl` + `metrics.json`, tabela porównania 3 modeli |
-| **5. Ocena i wersjonowanie** | walidacja krzyżowa po czasie, macierz pomyłek, wykrywalność ataków, wersjonowane modele | `conf/base/catalog.yml` (`versioned: true`) | raport w `docs/` |
+| **5. Ocena i wersjonowanie** | walidacja krzyżowa, macierz pomyłek, wersjonowane modele | `conf/base/catalog.yml` (`versioned: true`) | raport w `docs/` |
 | **6. Airflow** | DAG uruchamiający `kedro run` dla kolejnych pipeline'ów | `airflow/dags/ids_pipeline.py` | DAG przechodzi w Airflow UI |
 | **7. API + UI** | FastAPI ładuje model i scaler; Streamlit wysyła CSV do API i pokazuje wyniki | `app/api/main.py`, `app/ui/app.py` | `/docs` (Swagger) działa, UI pokazuje alerty |
 | **8. Docker** | obrazy `api` i `ui`, `docker-compose.yml` | `Dockerfile`, `docker-compose.yml` | `docker compose up` uruchamia całość |

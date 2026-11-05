@@ -18,7 +18,7 @@ flowchart LR
 
 | Moduł | Opis |
 |---|---|
-| **ETL (Kedro)** | wczytanie 3 plików CSV z `data/01_raw`, EDA, usunięcie kolumn stałych, cechy czasowe, skalowanie; train = `train1`, walidacja = `test1`, test = `test2` |
+| **ETL (Kedro)** | wczytanie 3 plików CSV z `data/01_raw`, EDA, usunięcie kolumn stałych, skalowanie; train = `train1`, walidacja = `test1`, test = `test2` |
 | **ML** | trening detektora na normalnej pracy, dobór progu (FPR ≤ 1%), metryki, zapis modelu do `data/06_models` |
 | **API (FastAPI)** | `POST /predict` przyjmuje pomiary i zwraca `anomaly_score` oraz `is_attack`; `GET /health` |
 | **UI (Streamlit)** | upload pliku CSV, tabela podejrzanych chwil, histogram wyników |
