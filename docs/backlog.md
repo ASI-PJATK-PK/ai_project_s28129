@@ -7,8 +7,8 @@ Tablica: GitHub Projects (To Do / In Progress / Done), zadania jako Issues.
 | 1 | Konfiguracja Kedro i repozytorium | 1 | Done |
 | 2 | Wybór tematu i danych, README | 1 | Done |
 | 3 | Diagram architektury | 1 | Done |
-| 4 | Pobranie danych CIC-IDS2017 (poniedziałek + piątek) | 2 | In Progress |
-| 5 | EDA (notebook + pipeline `eda` + raport) | 2 | To Do |
+| 4 | Pobranie danych HAI 21.03 | 2 | Done |
+| 5 | EDA (notebook + pipeline `eda` + raport) | 2 | Done |
 | 6 | Preprocessing danych | 3 | To Do |
 | 7 | Testy jednostkowe | 3 | To Do |
 | 8 | Modelowanie: baseline + Isolation Forest | 4 | To Do |

@@ -50,12 +50,12 @@ def arrow(a, b, label="", side="h"):
                 ha="center", fontsize=8, style="italic", color="#475569")
 
 
-ax.text(8, 8.75, "IDS oparty na detekcji anomalii – architektura systemu",
+ax.text(8, 8.75, "IDS dla OT oparty na detekcji anomalii – architektura systemu",
         ha="center", fontsize=15, weight="bold")
 
 # --- warstwa danych / ETL / ML (gora) ---
 src = box(0.3, 5.2, 2.6, 2.6, "Źródła danych",
-          "CIC-IDS2017\n(CSV, 2 dni)\n\npon.: ruch normalny\npt.: Botnet, PortScan,\nDDoS\n\ndata/01_raw", COLORS["data"])
+          "HAI 21.03 (OT)\n\ntrain1: normalna praca\ntest1, test2:\n25 ataków\n\ndata/01_raw", COLORS["data"])
 etl = box(3.5, 5.2, 3.4, 2.6, "ETL – Kedro",
           "DataCatalog\n\neda  →  preprocessing\n(czyszczenie, skalowanie,\npodział train/val/test)", COLORS["etl"])
 ml = box(7.5, 5.2, 3.6, 2.6, "ML – Kedro",

@@ -1,49 +1,39 @@
-# ai_project_s28129 – IDS: wykrywanie ataków sieciowych jako anomalii
+# ai_project_s28129 – IDS dla środowisk OT oparty na detekcji anomalii
 
 Projekt z przedmiotu **ASI**, PJATK. Zespół jednoosobowy: **s28129**.
 
 ## 1. Opis projektu
 
-Projekt to prosty **IDS** (*Intrusion Detection System*), czyli system wykrywania włamań w ruchu sieciowym.
-Model uczy się, jak wygląda **normalny ruch** w sieci, i oznacza jako podejrzane przepływy, które od niego odbiegają (**detekcja anomalii**).
+Projekt to prosty **IDS** (*Intrusion Detection System*) dla środowiska **OT**, czyli systemów sterujących procesem przemysłowym.
+Model uczy się, jak wygląda **normalna praca instalacji**, i oznacza sekundy, w których pomiary od niej odbiegają (**detekcja anomalii**).
 
 | | |
 |---|---|
-| **Typ problemu** | detekcja anomalii, oceniana jak klasyfikacja binarna `BENIGN` / `ATTACK` |
-| **Wejście** | przepływ sieciowy (*flow*) opisany 78 cechami: czas trwania, liczba i rozmiar pakietów, odstępy czasowe, flagi TCP, … |
+| **Typ problemu** | detekcja anomalii, oceniana jak klasyfikacja binarna `normalne` / `atak` |
+| **Wejście** | stan instalacji w danej sekundzie: pomiary i polecenia ze sterowników PLC |
 | **Wyjście** | `anomaly_score` (im wyższy, tym bardziej podejrzany) i decyzja `is_attack` |
-| **Użytkownik** | administrator sieci, który wrzuca plik CSV z przepływami i dostaje listę podejrzanych połączeń |
+| **Użytkownik** | operator lub inżynier automatyki, który wrzuca plik CSV i dostaje listę podejrzanych chwil |
 
-**Wartość praktyczna:** mała firma bez działu bezpieczeństwa dostaje prosty detektor, który nie potrzebuje bazy sygnatur ataków. Wystarczy mu wiedza o tym, jak wygląda normalny ruch, więc może zauważyć także ataki, których wcześniej nie widział.
+**Wartość praktyczna:** ataki na automatykę przemysłową mogą uszkodzić instalację lub ją zatrzymać. Taki detektor nie potrzebuje bazy sygnatur, bo wystarczy mu wiedza o normalnej pracy, więc może zauważyć także ataki, których wcześniej nie widział.
 
-## 2. Dane: CIC-IDS2017 (zakres: 2 dni)
+## 2. Dane: HAI 21.03
 
-Źródło: Canadian Institute for Cybersecurity (UNB), <https://www.unb.ca/cic/datasets/ids-2017.html>.
-Zbiór zawiera ruch z realistycznej sieci firmowej. Cechy przepływów wyliczono narzędziem CICFlowMeter.
-
-Używamy **dwóch dni** z ośmiu plików CSV:
+Źródło: <https://github.com/icsdataset/hai> (licencja CC BY-SA 4.0). Pomiary pochodzą ze stanowiska hardware-in-the-loop z prawdziwymi sterownikami PLC: kocioł, turbina, uzdatnianie wody i symulacja zapotrzebowania na moc.
 
 | Plik | Zawartość | Rola |
 |---|---|---|
-| `Monday-WorkingHours.pcap_ISCX.csv` | ok. 530 tys. przepływów, **tylko ruch normalny** | trening |
-| `Friday-WorkingHours-Morning.pcap_ISCX.csv` | ruch normalny + Botnet (Ares) | walidacja / test |
-| `Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv` | ruch normalny + skanowanie portów | walidacja / test |
-| `Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv` | ruch normalny + DDoS (LOIC) | walidacja / test |
+| `train1.csv.gz` | 216 001 sekund, sama normalna praca | trening |
+| `test1.csv.gz` | 43 201 sekund, 5 ataków | walidacja |
+| `test2.csv.gz` | 118 801 sekund, 20 ataków | test |
 
-**Podział:**
-- **train**: poniedziałek (model widzi wyłącznie ruch normalny)
-- **validation / test**: piątek podzielony losowo 50/50 ze stratyfikacją po etykiecie
-- wszystkie typy ataków traktujemy jako jedną klasę `ATTACK`
-
-**Znane problemy danych** (do obsłużenia w preprocessingu): wartości `Infinity`/`NaN` w `Flow Bytes/s` i `Flow Packets/s`, duplikaty, kolumny stałe, spacje w nazwach kolumn, zduplikowana kolumna `Fwd Header Length`.
+Każdy plik ma 84 kolumny: `time`, 79 punktów pomiarowych i 4 etykiety. Do modelu trafi 56 cech. Decyzje i ich uzasadnienia są w [`docs/eda_report.md`](docs/eda_report.md).
 
 ### Pobranie danych
 Dane nie są w repozytorium (`.gitignore`).
 
 ```bash
-python scripts/download_data.py                  # pobiera archiwum i rozpakowuje 4 potrzebne pliki do data/01_raw/
-python scripts/download_data.py --zip <plik.zip>  # jeśli archiwum pobrano ręcznie ze strony UNB
-python scripts/download_data.py --check          # sprawdza, czy pliki są na miejscu
+python scripts/download_data.py          # pobiera 3 pliki do data/01_raw/ (około 53 MB)
+python scripts/download_data.py --check  # sprawdza, czy pliki są na miejscu
 ```
 
 ## 3. Model i metryki
@@ -55,7 +45,8 @@ python scripts/download_data.py --check          # sprawdza, czy pliki są na mi
 | AutoML | PyCaret `pycaret.anomaly` (wymaganie etapu 4) |
 
 - **Próg alarmu** dobierany na walidacji tak, aby odsetek fałszywych alarmów (FPR) nie przekraczał **1%**
-- **Metryki:** ROC-AUC, precision, recall, F1, FPR, a w raporcie dodatkowo recall osobno dla Botnet / PortScan / DDoS
+- **Metryki:** ROC-AUC, PR-AUC, precision, recall, F1, FPR oraz liczba wykrytych ataków z 25
+- EDA pokazało, że model na pojedynczych sekundach jest słaby, dlatego w etapie 3 dochodzą cechy czasowe i różnice polecenie − położenie zaworu
 
 ## 4. Architektura
 
@@ -66,7 +57,7 @@ Diagram: [`docs/architecture_diagram.png`](docs/architecture_diagram.png), opis:
 | ETL | Kedro | wczytanie CSV, EDA, czyszczenie, skalowanie, podział danych |
 | ML | Kedro + scikit-learn / PyCaret | trening, dobór progu, ewaluacja, zapis modelu |
 | API | FastAPI | `POST /predict`, `GET /health` |
-| UI | Streamlit | upload CSV, tabela podejrzanych przepływów, histogram wyników |
+| UI | Streamlit | upload CSV, tabela podejrzanych chwil, histogram wyników |
 | Automatyzacja | Airflow | DAG: preprocessing → training → evaluation |
 | Wdrożenie | Docker Compose | kontenery `api` + `ui` |
 
@@ -74,18 +65,18 @@ Diagram: [`docs/architecture_diagram.png`](docs/architecture_diagram.png), opis:
 
 | Etap | Co powstanie | Pliki | Kryterium „zrobione” |
 |---|---|---|---|
-| **1. Planowanie** ✅ | temat, dane, architektura, szkielet Kedro, backlog | `README.md`, `docs/`, `conf/base/catalog.yml` | repo + diagram + GitHub Project |
-| **2. EDA** | rozkłady cech, braki i `inf`, duplikaty, rozkład etykiet, korelacje, boxploty | `notebooks/EDA_s28129.ipynb`, `pipelines/eda/`, `docs/eda_report.md` | `kedro run --pipeline=eda` zapisuje wykresy do `data/08_reporting` |
-| **3. Preprocessing** | czyszczenie (`inf`→NaN→usunięcie, duplikaty, kolumny stałe), etykieta binarna, `StandardScaler` dopasowany tylko na train, podział val/test | `pipelines/preprocessing/`, `tests/test_preprocessing.py` | pliki train/val/test w `data/05_model_input`, testy `pytest` przechodzą |
+| **1. Planowanie** ✅ | temat, architektura, szkielet Kedro, backlog | `README.md`, `docs/`, `conf/base/catalog.yml` | repo + diagram + GitHub Project |
+| **2. EDA** ✅ | analiza jakości danych, wykresy, decyzje o danych | `notebooks/EDA_s28129.ipynb`, `pipelines/eda/`, `docs/eda_report.md` | `kedro run --pipeline=eda` zapisuje tabele i wykresy |
+| **3. Preprocessing** | usunięcie kolumn, podział po plikach, różnice `D − Z`, cechy z okien czasowych, `StandardScaler` dopasowany tylko na train | `pipelines/preprocessing/`, `tests/test_preprocessing.py` | dane w `data/05_model_input`, testy `pytest` przechodzą |
 | **4. Model + AutoML** | baseline z-score, Isolation Forest, PyCaret anomaly; dobór progu na walidacji (FPR ≤ 1%) | `pipelines/training/`, `pipelines/evaluation/` | `model.pkl` + `metrics.json`, tabela porównania 3 modeli |
-| **5. Ocena i wersjonowanie** | walidacja krzyżowa, macierz pomyłek, recall per typ ataku, wersjonowane modele | `conf/base/catalog.yml` (`versioned: true`) | raport w `docs/` |
+| **5. Ocena i wersjonowanie** | walidacja krzyżowa po czasie, macierz pomyłek, wykrywalność ataków, wersjonowane modele | `conf/base/catalog.yml` (`versioned: true`) | raport w `docs/` |
 | **6. Airflow** | DAG uruchamiający `kedro run` dla kolejnych pipeline'ów | `airflow/dags/ids_pipeline.py` | DAG przechodzi w Airflow UI |
 | **7. API + UI** | FastAPI ładuje model i scaler; Streamlit wysyła CSV do API i pokazuje wyniki | `app/api/main.py`, `app/ui/app.py` | `/docs` (Swagger) działa, UI pokazuje alerty |
 | **8. Docker** | obrazy `api` i `ui`, `docker-compose.yml` | `Dockerfile`, `docker-compose.yml` | `docker compose up` uruchamia całość |
 
 Szczegółowa lista zadań: GitHub Projects oraz [`docs/backlog.md`](docs/backlog.md).
 
-**Poza zakresem:** analiza ruchu na żywo, surowe pliki PCAP, rozpoznawanie konkretnego typu ataku, deep learning.
+**Poza zakresem:** analiza na żywo, ruch sieciowy i pliki PCAP, rozpoznawanie konkretnego typu ataku, deep learning.
 
 ## 6. Struktura repozytorium
 
@@ -93,8 +84,8 @@ Szczegółowa lista zadań: GitHub Projects oraz [`docs/backlog.md`](docs/backlo
 ai_project_s28129/
 ├── conf/base/             # catalog.yml, parameters.yml
 ├── data/                  # 01_raw … 08_reporting (poza gitem)
-├── docs/                  # diagram, architektura, backlog
-├── notebooks/             # notebooki Jupyter (EDA, eksperymenty)
+├── docs/                  # raport EDA, wykresy, architektura, backlog
+├── notebooks/             # EDA_s28129.ipynb
 ├── scripts/               # pobieranie danych, generowanie diagramu
 ├── src/ai_project_s28129/ # kod Kedro (pipelines, nodes)
 ├── tests/
@@ -110,6 +101,11 @@ python -m venv .venv
 .venv\Scripts\activate             # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 python scripts/download_data.py
-kedro run                          # pipeline'y dochodzą w kolejnych etapach
+kedro run --pipeline=eda
 pytest
 ```
+
+## 8. Źródła
+
+- H.-K. Shin, W. Lee, J.-H. Yun, B.-G. Min, *Two ICS Security Datasets and Anomaly Detection Contest on the HIL-based Augmented ICS Testbed*, CSET 2021.
+- Kedro: <https://docs.kedro.org>
