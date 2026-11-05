@@ -1,11 +1,7 @@
 random_state: 42
 
 eda:
-  # pairplot: 5 zmiennych najmocniej rozrozniajacych atak (test KS, patrz notebook)
-  pairplot_columns: [P1_FCV03D, P1_FCV03Z, P1_LCV01D, P1_PIT01, P4_ST_PT01]
+  # po kilka zmiennych z kazdego procesu
+  columns: [P1_FCV03D, P1_FCV03Z, P1_LCV01D, P1_PIT01, P1_FT01, P2_SIT01, P3_LIT01, P4_ST_PT01]
+  pairplot_columns: [P1_FCV03D, P1_FCV03Z, P1_LCV01D, P1_PIT01]
   pairplot_sample: 1500
-  boxplot_sample: 20000
-  # atak zakonczony wylaczeniem awaryjnym turbiny (test2)
-  example_attack:
-    start: "2020-07-10 16:15:00"
-    end: "2020-07-10 16:35:00"

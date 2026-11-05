@@ -9,7 +9,7 @@ _csv_gz: &csv_gz
   load_args:
     compression: gzip
 
-raw_train1:   # 60 h, tylko ruch normalny
+raw_train1:   # 60 h, tylko normalna praca
   <<: *csv_gz
   filepath: data/01_raw/train1.csv.gz
 
@@ -21,38 +21,26 @@ raw_test2:    # 33 h, 20 atakow
   <<: *csv_gz
   filepath: data/01_raw/test2.csv.gz
 
-# --- 08_reporting: tabele z EDA ---
-_report: &report
+# --- wyniki EDA ---
+eda_quality:
   type: pandas.CSVDataset
+  filepath: data/08_reporting/eda_quality.csv
+
+eda_stats:
+  type: pandas.CSVDataset
+  filepath: data/08_reporting/eda_stats.csv
   save_args:
-    index: false
+    index: true
 
-eda_file_summary:
-  <<: *report
-  filepath: data/08_reporting/eda_file_summary.csv
-
-eda_column_summary:
-  <<: *report
-  filepath: data/08_reporting/eda_column_summary.csv
-
-eda_attack_episodes:
-  <<: *report
-  filepath: data/08_reporting/eda_attack_episodes.csv
-
-# --- wykresy: w docs/figures, bo dolaczamy je do docs/eda_report.md ---
 _figure: &figure
   type: matplotlib.MatplotlibDataset
   save_args:
     dpi: 90
     bbox_inches: tight
 
-eda_fig_histograms:
+eda_fig_distributions:
   <<: *figure
-  filepath: docs/figures/histograms.png
-
-eda_fig_boxplots:
-  <<: *figure
-  filepath: docs/figures/boxplots.png
+  filepath: docs/figures/distributions.png
 
 eda_fig_counts:
   <<: *figure
@@ -65,7 +53,3 @@ eda_fig_correlation:
 eda_fig_pairplot:
   <<: *figure
   filepath: docs/figures/pairplot.png
-
-eda_fig_attack_example:
-  <<: *figure
-  filepath: docs/figures/attack_example.png
