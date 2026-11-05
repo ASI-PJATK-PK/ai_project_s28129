@@ -208,9 +208,11 @@ def plot_pairplot(df: pd.DataFrame, columns: list[str], sample: int, random_stat
     grid = sns.pairplot(
         pd.concat(parts)[[*columns, "attack"]],
         hue="attack",
+        hue_order=[1, 0],
+        palette={0: "tab:blue", 1: "tab:red"},
         corner=True,
         height=1.8,
-        plot_kws={"s": 6, "alpha": 0.4},
+        plot_kws={"s": 6, "alpha": 0.5},
     )
     return grid.figure
 
