@@ -1,90 +1,52 @@
-"""Pobieranie zbioru CIC-IDS2017 (MachineLearningCSV) do data/01_raw/.
+"""Pobieranie zbioru HAI 21.03 do data/01_raw/.
 
 Uzycie:
-    python scripts/download_data.py                 # pobierz + rozpakuj
-    python scripts/download_data.py --url <URL>     # wlasny mirror archiwum zip
-    python scripts/download_data.py --zip plik.zip  # rozpakuj recznie pobrane archiwum
-    python scripts/download_data.py --check         # sprawdz kompletnosc plikow
+    python scripts/download_data.py          # pobierz brakujace pliki
+    python scripts/download_data.py --check  # sprawdz kompletnosc plikow
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
-import zipfile
 from pathlib import Path
 
 RAW_DIR = Path(__file__).resolve().parents[1] / "data" / "01_raw"
 
-# Oficjalna strona: https://www.unb.ca/cic/datasets/ids-2017.html
-# (link do archiwum moze sie zmieniac - wtedy uzyj --url albo --zip)
-DEFAULT_URL = (
-    "http://cicresearch.ca/CICDataset/CIC-IDS-2017/Dataset/CIC-IDS-2017/CSVs/"
-    "MachineLearningCSV.zip"
-)
-
-# Zakres projektu: poniedzialek (tylko BENIGN) + piatek (ataki) - pozostale dni pomijamy
-EXPECTED_FILES = [
-    "Monday-WorkingHours.pcap_ISCX.csv",
-    "Friday-WorkingHours-Morning.pcap_ISCX.csv",
-    "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
-    "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
-]
+# Repozytorium zbioru: https://github.com/icsdataset/hai (licencja CC BY-SA 4.0)
+BASE_URL = "https://raw.githubusercontent.com/icsdataset/hai/master/hai-21.03"
+FILES = ["train1.csv.gz", "test1.csv.gz", "test2.csv.gz"]
 
 
-def download(url: str, target: Path) -> Path:
+def download(name: str) -> None:
     import requests
 
-    target.parent.mkdir(parents=True, exist_ok=True)
-    print(f"Pobieranie {url} -> {target}")
-    with requests.get(url, stream=True, timeout=60) as r:
+    print(f"Pobieranie {name}")
+    with requests.get(f"{BASE_URL}/{name}", stream=True, timeout=60) as r:
         r.raise_for_status()
-        total = int(r.headers.get("content-length", 0))
-        done = 0
-        with open(target, "wb") as f:
+        with open(RAW_DIR / name, "wb") as f:
             for chunk in r.iter_content(chunk_size=1 << 20):
                 f.write(chunk)
-                done += len(chunk)
-                if total:
-                    print(f"\r  {done / total:6.1%}", end="")
-    print()
-    return target
 
 
-def extract(zip_path: Path, out_dir: Path) -> None:
-    """Rozpakowuje tylko potrzebne pliki CSV, ignorujac strukture katalogow w archiwum."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(zip_path) as zf:
-        for member in zf.infolist():
-            name = Path(member.filename).name
-            if name not in EXPECTED_FILES:
-                continue
-            print(f"  rozpakowuje {name}")
-            with zf.open(member) as src, open(out_dir / name, "wb") as dst:
-                dst.write(src.read())
-
-
-def check(out_dir: Path) -> bool:
-    missing = [f for f in EXPECTED_FILES if not (out_dir / f).exists()]
-    for f in EXPECTED_FILES:
-        status = "BRAK" if f in missing else "OK  "
-        print(f"[{status}] {f}")
+def check() -> bool:
+    missing = [f for f in FILES if not (RAW_DIR / f).exists()]
+    for f in FILES:
+        print(f"[{'BRAK' if f in missing else 'OK  '}] {f}")
     return not missing
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--url", default=DEFAULT_URL)
-    parser.add_argument("--zip", type=Path, help="lokalne archiwum MachineLearningCSV.zip")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    if args.check:
-        return 0 if check(RAW_DIR) else 1
-
-    zip_path = args.zip or download(args.url, RAW_DIR / "MachineLearningCSV.zip")
-    extract(zip_path, RAW_DIR)
-    return 0 if check(RAW_DIR) else 1
+    if not args.check:
+        RAW_DIR.mkdir(parents=True, exist_ok=True)
+        for name in FILES:
+            if not (RAW_DIR / name).exists():
+                download(name)
+    return 0 if check() else 1
 
 
 if __name__ == "__main__":

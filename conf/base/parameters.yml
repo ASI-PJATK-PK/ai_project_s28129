@@ -1,16 +1,11 @@
 random_state: 42
 
-label_column: Label
-benign_label: BENIGN
-
-# train = poniedzialek (tylko BENIGN)
-# piatek dzielimy losowo (stratyfikacja po etykiecie) na walidacje i test
-val_test_split:
-  test_size: 0.5
-
-# docelowy maksymalny odsetek falszywych alarmow przy doborze progu (na walidacji)
-target_fpr: 0.01
-
-isolation_forest:
-  n_estimators: 200
-  max_samples: 256
+eda:
+  # pairplot: 5 zmiennych najmocniej rozrozniajacych atak (test KS, patrz notebook)
+  pairplot_columns: [P1_FCV03D, P1_FCV03Z, P1_LCV01D, P1_PIT01, P4_ST_PT01]
+  pairplot_sample: 1500
+  boxplot_sample: 20000
+  # atak zakonczony wylaczeniem awaryjnym turbiny (test2)
+  example_attack:
+    start: "2020-07-10 16:15:00"
+    end: "2020-07-10 16:35:00"

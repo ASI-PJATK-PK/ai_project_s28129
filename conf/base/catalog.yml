@@ -3,28 +3,69 @@
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
-# --- 01_raw: CIC-IDS2017 MachineLearningCSV (scripts/download_data.py) ---
-# Zakres minimum: 2 dni ruchu - poniedzialek (tylko BENIGN) i piatek (BENIGN + ataki)
-_csv: &csv
+# --- 01_raw: HAI 21.03 (scripts/download_data.py) ---
+_csv_gz: &csv_gz
   type: pandas.CSVDataset
   load_args:
-    skipinitialspace: true
-    low_memory: false
+    compression: gzip
 
-# trening detektora anomalii - wylacznie ruch normalny
-raw_monday:
-  <<: *csv
-  filepath: data/01_raw/Monday-WorkingHours.pcap_ISCX.csv
+raw_train1:   # 60 h, tylko ruch normalny
+  <<: *csv_gz
+  filepath: data/01_raw/train1.csv.gz
 
-# walidacja / test - ruch mieszany z atakami
-raw_friday_morning:        # Botnet (Ares)
-  <<: *csv
-  filepath: data/01_raw/Friday-WorkingHours-Morning.pcap_ISCX.csv
+raw_test1:    # 12 h, 5 atakow
+  <<: *csv_gz
+  filepath: data/01_raw/test1.csv.gz
 
-raw_friday_portscan:       # PortScan
-  <<: *csv
-  filepath: data/01_raw/Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv
+raw_test2:    # 33 h, 20 atakow
+  <<: *csv_gz
+  filepath: data/01_raw/test2.csv.gz
 
-raw_friday_ddos:           # DDoS (LOIC)
-  <<: *csv
-  filepath: data/01_raw/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+# --- 08_reporting: tabele z EDA ---
+_report: &report
+  type: pandas.CSVDataset
+  save_args:
+    index: false
+
+eda_file_summary:
+  <<: *report
+  filepath: data/08_reporting/eda_file_summary.csv
+
+eda_column_summary:
+  <<: *report
+  filepath: data/08_reporting/eda_column_summary.csv
+
+eda_attack_episodes:
+  <<: *report
+  filepath: data/08_reporting/eda_attack_episodes.csv
+
+# --- wykresy: w docs/figures, bo dolaczamy je do docs/eda_report.md ---
+_figure: &figure
+  type: matplotlib.MatplotlibDataset
+  save_args:
+    dpi: 90
+    bbox_inches: tight
+
+eda_fig_histograms:
+  <<: *figure
+  filepath: docs/figures/histograms.png
+
+eda_fig_boxplots:
+  <<: *figure
+  filepath: docs/figures/boxplots.png
+
+eda_fig_counts:
+  <<: *figure
+  filepath: docs/figures/counts.png
+
+eda_fig_correlation:
+  <<: *figure
+  filepath: docs/figures/correlation.png
+
+eda_fig_pairplot:
+  <<: *figure
+  filepath: docs/figures/pairplot.png
+
+eda_fig_attack_example:
+  <<: *figure
+  filepath: docs/figures/attack_example.png

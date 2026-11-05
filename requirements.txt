@@ -1,6 +1,6 @@
 # --- Kedro / ETL ---
 kedro~=1.7.0
-kedro-datasets[pandas-csvdataset,pickle-pickledataset]>=4.0
+kedro-datasets[pandas-csvdataset,pickle-pickledataset,matplotlib-matplotlibdataset]>=4.0
 
 # --- Dane i analiza ---
 pandas>=2.1
